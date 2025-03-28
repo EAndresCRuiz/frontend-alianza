@@ -1,0 +1,18 @@
+.client-list-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+
+    h2 {
+        text-align: center;
+    }
+
+    mat-form-field {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    table {
+        width: 100%;
+    }
+}

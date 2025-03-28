@@ -1,0 +1,28 @@
+<div class="client-list-container">
+    <h2>Administración de Clientes</h2>
+
+    <mat-form-field appearance="outline">
+        <mat-label>Buscar por Shared Key</mat-label>
+        <input matInput [formControl]="searchControl" />
+    </mat-form-field>
+
+    <table mat-table [dataSource]="clients" class="mat-elevation-z8">
+        <ng-container matColumnDef="sharedKey">
+            <th mat-header-cell *matHeaderCellDef> Shared Key </th>
+            <td mat-cell *matCellDef="let client"> {{ client.sharedKey }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Nombre </th>
+            <td mat-cell *matCellDef="let client"> {{ client.name }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef> Email </th>
+            <td mat-cell *matCellDef="let client"> {{ client.email }} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['sharedKey', 'name', 'email']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['sharedKey', 'name', 'email'];"></tr>
+    </table>
+</div>
