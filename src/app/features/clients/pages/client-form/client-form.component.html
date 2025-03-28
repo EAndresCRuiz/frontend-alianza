@@ -1,1 +1,40 @@
-<p>client-form works!</p>
+<div class="client-form-container">
+    <h2>Agregar Cliente</h2>
+
+    <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline">
+            <mat-label>Shared Key</mat-label>
+            <input matInput formControlName="sharedKey" />
+            <mat-error *ngIf="clientForm.controls['sharedKey'].invalid">
+                Shared Key es obligatorio (mínimo 3 caracteres)
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="name" />
+            <mat-error *ngIf="clientForm.controls['name'].invalid">
+                Nombre es obligatorio
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" />
+            <mat-error *ngIf="clientForm.controls['email'].invalid">
+                Email no es válido
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Teléfono</mat-label>
+            <input matInput formControlName="phone" />
+        </mat-form-field>
+
+        <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="clientForm.invalid">
+            Guardar Cliente
+        </button>
+    </form>
+</div>
