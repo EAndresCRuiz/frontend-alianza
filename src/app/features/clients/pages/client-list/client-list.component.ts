@@ -10,7 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 @Component({
   selector: 'app-client-list',
   templateUrl: './client-list.component.html',
-  imports: [MatFormFieldModule,
+  imports: [
+    MatFormFieldModule,
     ReactiveFormsModule,
     MatTableModule,
     MatInputModule
