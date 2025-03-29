@@ -1,28 +1,56 @@
-<div class="client-list-container">
-    <h2>Administración de Clientes</h2>
+<div class="clients-container">
+    
+    <div class="actions-row">
+        <button mat-raised-button color="primary" class="action-button" >
+            <!-- (click)="/* openCreateDialog() */" -->
+            <mat-icon>add</mat-icon> New
+        </button>
+        <button mat-raised-button color="accent" class="action-button" (click)="export('CSV')">
+            <mat-icon>file_download</mat-icon> Export
+        </button>
+    </div>
 
-    <mat-form-field appearance="outline">
-        <mat-label>Buscar por Shared Key</mat-label>
-        <input matInput [formControl]="searchControl" />
-    </mat-form-field>
+    <div class="search-row">
+        <mat-form-field appearance="outline" class="search-input">
+            <input matInput [formControl]="searchControl" placeholder="Enter shared key" />
+        </mat-form-field>
+        <button mat-stroked-button color="primary" (click)="toggleAdvancedSearch()">Advanced Search</button>
+    </div>
 
-    <table mat-table [dataSource]="clients" class="mat-elevation-z8">
+    <div *ngIf="showAdvanced" class="advanced-container">
+        <!-- Aquí irían los campos extra: name, email, phone, fechas, etc. -->
+        <p><i>[Advanced search form goes here]</i></p>
+    </div>
+
+    <h2 class="section-title">Clients</h2>
+
+    <table mat-table [dataSource]="(clients$ | async) || []" class="mat-elevation-z2 client-table" [trackBy]="trackByClient">
         <ng-container matColumnDef="sharedKey">
-            <th mat-header-cell *matHeaderCellDef> Shared Key </th>
-            <td mat-cell *matCellDef="let client"> {{ client.sharedKey }} </td>
+            <th mat-header-cell *matHeaderCellDef>Shared Key</th>
+            <td mat-cell *matCellDef="let client">{{ client.sharedKey }}</td>
         </ng-container>
 
         <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef> Nombre </th>
-            <td mat-cell *matCellDef="let client"> {{ client.name }} </td>
+            <th mat-header-cell *matHeaderCellDef>Business ID</th>
+            <td mat-cell *matCellDef="let client">{{ client.name }}</td>
         </ng-container>
 
         <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef> Email </th>
-            <td mat-cell *matCellDef="let client"> {{ client.email }} </td>
+            <th mat-header-cell *matHeaderCellDef>E-mail</th>
+            <td mat-cell *matCellDef="let client">{{ client.email }}</td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="['sharedKey', 'name', 'email']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['sharedKey', 'name', 'email'];"></tr>
+        <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef>Phone</th>
+            <td mat-cell *matCellDef="let client">{{ client.phone || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Data Added</th>
+            <td mat-cell *matCellDef="let client">{{ client.createdAt | date:'dd/MM/yyyy' }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
 </div>
