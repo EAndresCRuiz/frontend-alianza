@@ -28,6 +28,7 @@
     background-color: #f8f9fa;
     border: 1px solid #ccc;
     margin-bottom: 16px;
+    border-radius: 4px;
 }
 
 .section-title {
@@ -52,4 +53,21 @@
 .mat-header-cell {
     padding: 12px;
     border-bottom: 1px solid #e0e0e0;
+}
+
+.advanced-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.advanced-input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.advanced-actions {
+    display: flex;
+    justify-content: flex-end;
 }

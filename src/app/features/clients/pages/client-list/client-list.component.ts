@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, startWith, switchMap, map } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { Client } from 'src/app/core/models/client';
@@ -29,8 +29,10 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class ClientListComponent implements OnInit {
   private clientService = inject(ClientService);
+  private fb = inject(FormBuilder);
 
   searchControl = new FormControl('');
+  advancedFiltersForm: FormGroup = new FormGroup({});
   filters: ClientFilters = {};
   clients$: Observable<Client[]> = of([]);
   showAdvanced = false;
@@ -38,6 +40,14 @@ export class ClientListComponent implements OnInit {
   displayedColumns: string[] = ['sharedKey', 'name', 'email', 'phone', 'createdAt'];
 
   ngOnInit(): void {
+    this.advancedFiltersForm = this.fb.group({
+      name: [''],
+      email: [''],
+      phone: [''],
+      startDate: [''],
+      endDate: ['']
+    });
+
     this.clients$ = this.searchControl.valueChanges.pipe(
       debounceTime(300),
       startWith(''),
@@ -55,11 +65,24 @@ export class ClientListComponent implements OnInit {
     this.showAdvanced = !this.showAdvanced;
   }
 
-  applyFilters(filters: ClientFilters): void {
-    this.filters = filters;
+  applyFilters(): void {
+    const raw = this.advancedFiltersForm.value;
+
+    this.filters = {
+      name: raw.name || null,
+      email: raw.email || null,
+      phone: raw.phone || null,
+      startDate: raw.startDate ? this.formatDate(raw.startDate) : undefined,
+      endDate: raw.endDate ? this.formatDate(raw.endDate) : undefined
+    };
+
     this.clients$ = this.clientService.getFilteredClients(this.filters).pipe(
       map(result => Array.isArray(result) ? result : [result])
     );
+  }
+
+  formatDate(date: string): string {
+    return new Date(date).toISOString().split('T')[0]; //yyyy-MM-dd
   }
 
   export(format: 'CSV' | 'EXCEL'): void {

@@ -37,7 +37,7 @@ export class ClientService {
   }
 
   getFilteredClients(filters: ClientFilters): Observable<Client[]> {
-    return this.http.post<Client[]>(`${this.apiUrl}/search`, filters).pipe(
+    return this.http.post<Client[]>(`${this.apiUrl}/search/advanced`, filters).pipe(
       catchError(this.handleError)
     );
   }
