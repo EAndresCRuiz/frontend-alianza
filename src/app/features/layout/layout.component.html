@@ -1,0 +1,37 @@
+<div class="layout">
+
+    <aside class="sidebar" [class.closed]="!sidebarOpen">
+        <div class="logo">
+            <img src="assets/img/logo.png" class="logo-image">
+            <strong>Alianza</strong>
+        </div>
+        <nav class="nav">
+            <div *ngFor="let item of menuItems" class="menu-group">
+                <div class="nav-section" (click)="toggleMenuItem(item)" [class.active]="item.expanded">
+                    <mat-icon class="nav-icon">{{item.icon}}</mat-icon>
+                    <span class="nav-title">{{item.title}}</span>
+                </div>
+                <ul class="submenu" 
+                    [style.height]="!animationsEnabled && item.expanded ? 'auto' : null"
+                    [style.opacity]="!animationsEnabled && item.expanded ? '1' : null"
+                    [@submenuAnimation]="animationsEnabled ? (item.expanded ? 'expanded' : 'collapsed') : 'expanded'">
+                    <li *ngFor="let child of item.children" 
+                        (click)="selectMenuItem(child)"
+                        [class.selected]="selectedItem === child"
+                        class="menu-item">{{child}}</li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <div class="topbar">
+            <button class="menu-toggle" (click)="toggleSidebar()">
+                <mat-icon class="menu-icon">menu</mat-icon>
+                <span class="menu-text">Menu</span>
+            </button>
+        </div>
+
+        <router-outlet></router-outlet>
+    </main>
+</div>
