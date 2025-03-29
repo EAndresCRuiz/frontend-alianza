@@ -1,8 +1,8 @@
 export interface Client {
-    id: string;
+    id?: string;
     sharedKey: string;
     name: string;
     email: string;
     phone?: string | null;
-    createdAt: string;
+    createdAt?: string;
 }

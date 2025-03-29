@@ -1,55 +1,74 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { ClientService } from 'src/app/core/services/client.service';
 import { Client } from 'src/app/core/models/client';
-import { Router } from '@angular/router';
-import { NgIf } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-client-form',
   imports: [
-    NgIf,
+    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatButtonModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './client-form.component.html',
   styleUrls: ['./client-form.component.css'],
   standalone: true,
 })
 export class ClientFormComponent {
-  clientForm: FormGroup;
-  errorMessage: string | null = null;
+  private fb = inject(FormBuilder);
+  private clientService = inject(ClientService);
+  private dialogRef = inject(MatDialogRef<ClientFormComponent>);
 
-  constructor(
-    private fb: FormBuilder,
-    private clientService: ClientService,
-    private router: Router
-  ) {
-    this.clientForm = this.fb.group({
-      sharedKey: ['', [Validators.required, Validators.minLength(3)]],
-      name: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: [''],
-    });
-  }
+  clientForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    phone: [''],
+    email: ['', [Validators.required, Validators.email]],
+  });
+
+  errorMessage: string | null = null;
+  success = false;
 
   onSubmit(): void {
     if (this.clientForm.invalid) return;
 
+    const formValue = this.clientForm.value;
     const newClient: Client = {
-      ...this.clientForm.value,
-      id: '',
-      createdAt: new Date().toISOString(),
+      sharedKey: this.generateSharedKey(formValue.email),
+      name: formValue.name,
+      phone: formValue.phone || null,
+      email: formValue.email
     };
 
     this.clientService.createClient(newClient).subscribe({
-      next: () => this.router.navigate(['/']),
-      error: (err) => {
-        this.errorMessage = err.error.message || 'Error al crear cliente';
+      next: () => {
+        this.success = true;
+        this.clientForm.reset();
+        this.dialogRef.close('created');
       },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Error al crear cliente.';
+      }
     });
   }
+
+  private generateSharedKey(email: string): string {
+    const username = email.split('@')[0];
+    return username.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  closeModal(): void {
+    this.dialogRef.close();
+  }
+  
 }

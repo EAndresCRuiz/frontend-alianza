@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, startWith, switchMap, map } from 'rxjs/operators';
+import { debounceTime, startWith, switchMap, map, catchError } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { Client } from 'src/app/core/models/client';
 import { ClientService } from 'src/app/core/services/client.service';
@@ -11,6 +11,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { ClientFormComponent } from 'src/app/features/clients/pages/client-form/client-form.component';
 
 @Component({
   selector: 'app-client-list',
@@ -30,6 +32,7 @@ import { MatButtonModule } from '@angular/material/button';
 export class ClientListComponent implements OnInit {
   private clientService = inject(ClientService);
   private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
 
   searchControl = new FormControl('');
   advancedFiltersForm: FormGroup = new FormGroup({});
@@ -48,14 +51,29 @@ export class ClientListComponent implements OnInit {
       endDate: ['']
     });
 
+    this.initSearchListener();
+  }
+
+  initSearchListener(): void {
     this.clients$ = this.searchControl.valueChanges.pipe(
       debounceTime(300),
       startWith(''),
       switchMap(value => {
+        console.log("cambia el search")
         if (value && value.trim()) {
-          return this.clientService.searchClients(value.trim());
+          return this.clientService.searchClients(value.trim()).pipe(
+            catchError(error => {
+              console.error('Error searching clients:', error);
+              return of([]);//return empty array on error to keep the stream alive
+            })
+          );
         } else {
-          return this.clientService.getClients();
+          return this.clientService.getClients().pipe(
+            catchError(error => {
+              console.error('Error fetching clients:', error);
+              return of([]);//return empty array on error to keep the stream alive
+            })
+          );
         }
       })
     );
@@ -77,7 +95,11 @@ export class ClientListComponent implements OnInit {
     };
 
     this.clients$ = this.clientService.getFilteredClients(this.filters).pipe(
-      map(result => Array.isArray(result) ? result : [result])
+      map(result => Array.isArray(result) ? result : [result]),
+      catchError(error => {
+        console.error('Error applying filters:', error);
+        return of([]);
+      })
     );
   }
 
@@ -104,5 +126,18 @@ export class ClientListComponent implements OnInit {
 
   trackByClient(index: number, client: Client): string {
     return client.id!;
+  }
+
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open(ClientFormComponent, {
+      width: '500px',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'created') {
+        this.initSearchListener();//init listener to keep the stream alive
+      }
+    });
   }
 }

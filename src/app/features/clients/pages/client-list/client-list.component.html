@@ -1,8 +1,7 @@
 <div class="clients-container">
 
     <div class="actions-row">
-        <button mat-raised-button color="primary" class="action-button">
-            <!-- (click)="/* openCreateDialog() */" -->
+        <button mat-raised-button color="primary" class="action-button" (click)="openCreateDialog()">
             <mat-icon>add</mat-icon> New
         </button>
         <button mat-raised-button color="accent" class="action-button" (click)="export('CSV')">
