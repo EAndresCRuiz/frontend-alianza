@@ -17,6 +17,7 @@ import { MatInputModule } from '@angular/material/input';
     MatInputModule
   ],
   styleUrls: ['./client-list.component.css'],
+  standalone: true
 })
 export class ClientListComponent implements OnInit {
   clients: Client[] = [];
