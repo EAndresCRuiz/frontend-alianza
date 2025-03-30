@@ -103,6 +103,12 @@ export class ClientListComponent implements OnInit {
     );
   }
 
+  clearFilters(): void {
+    this.advancedFiltersForm.reset();
+    this.filters = {};
+    this.initSearchListener();//init listener to keep the stream alive
+  }
+
   formatDate(date: string): string {
     return new Date(date).toISOString().split('T')[0]; //yyyy-MM-dd
   }
