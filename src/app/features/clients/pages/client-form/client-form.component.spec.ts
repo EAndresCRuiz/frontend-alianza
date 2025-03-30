@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
-import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { ClientFormComponent } from './client-form.component';
 import { ClientService } from '../../../../core/services/client.service';
@@ -8,16 +7,17 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialogRef } from '@angular/material/dialog';
 
 describe('ClientFormComponent', () => {
   let component: ClientFormComponent;
   let fixture: ComponentFixture<ClientFormComponent>;
   let clientServiceSpy: jasmine.SpyObj<ClientService>;
-  let routerSpy: jasmine.SpyObj<Router>;
+  let dialogRefSpy: jasmine.SpyObj<MatDialogRef<ClientFormComponent>>;
 
   beforeEach(async () => {
     clientServiceSpy = jasmine.createSpyObj('ClientService', ['createClient']);
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -31,7 +31,7 @@ describe('ClientFormComponent', () => {
       providers: [
         FormBuilder,
         { provide: ClientService, useValue: clientServiceSpy },
-        { provide: Router, useValue: routerSpy }
+        { provide: MatDialogRef, useValue: dialogRefSpy }
       ]
     }).compileComponents();
 
@@ -45,22 +45,18 @@ describe('ClientFormComponent', () => {
   });
 
   it('should initialize with empty form', () => {
-    expect(component.clientForm.get('sharedKey')?.value).toBe('');
     expect(component.clientForm.get('name')?.value).toBe('');
     expect(component.clientForm.get('email')?.value).toBe('');
     expect(component.clientForm.get('phone')?.value).toBe('');
   });
 
   it('should validate required fields', () => {
-    const sharedKeyControl = component.clientForm.get('sharedKey');
     const nameControl = component.clientForm.get('name');
     const emailControl = component.clientForm.get('email');
     
-    sharedKeyControl?.setValue('');
     nameControl?.setValue('');
     emailControl?.setValue('');
     
-    expect(sharedKeyControl?.valid).toBeFalsy();
     expect(nameControl?.valid).toBeFalsy();
     expect(emailControl?.valid).toBeFalsy();
     expect(component.clientForm.valid).toBeFalsy();
@@ -87,7 +83,6 @@ describe('ClientFormComponent', () => {
     }));
     
     component.clientForm.setValue({
-      sharedKey: 'test123',
       name: 'Test User',
       email: 'test@example.com',
       phone: '1234567890'
@@ -96,18 +91,16 @@ describe('ClientFormComponent', () => {
     component.onSubmit();
     
     expect(clientServiceSpy.createClient).toHaveBeenCalledWith(jasmine.objectContaining({
-      sharedKey: 'test123',
       name: 'Test User',
       email: 'test@example.com',
       phone: '1234567890'
     }));
     
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
+    expect(dialogRefSpy.close).toHaveBeenCalledWith('created');
   });
 
   it('should not submit invalid form', () => {
     component.clientForm.setValue({
-      sharedKey: '',
       name: '',
       email: 'invalid-email',
       phone: ''
@@ -116,6 +109,41 @@ describe('ClientFormComponent', () => {
     component.onSubmit();
     
     expect(clientServiceSpy.createClient).not.toHaveBeenCalled();
-    expect(routerSpy.navigate).not.toHaveBeenCalled();
+    expect(dialogRefSpy.close).not.toHaveBeenCalled();
+  });
+
+  it('should close modal when closeModal is called', () => {
+    component.closeModal();
+    expect(dialogRefSpy.close).toHaveBeenCalled();
+  });
+
+  it('should generate shared key from email', () => {
+    clientServiceSpy.createClient.and.returnValue(of({
+      id: '1',
+      sharedKey: 'test.user',
+      name: 'Test User',
+      email: 'test.user@example.com',
+      phone: '1234567890',
+      createdAt: new Date().toISOString()
+    }));
+
+    const generateSharedKey = spyOn<any>(component, 'generateSharedKey').and.returnValue('test.user');
+    
+    component.clientForm.setValue({
+      name: 'Test User',
+      email: 'test.user@example.com',
+      phone: '1234567890'
+    });
+    
+    component.onSubmit();
+    
+    expect(generateSharedKey).toHaveBeenCalledWith('test.user@example.com');
+    
+    expect(clientServiceSpy.createClient).toHaveBeenCalledWith({
+      name: 'Test User',
+      email: 'test.user@example.com',
+      phone: '1234567890',
+      sharedKey: 'test.user'
+    });
   });
 });
